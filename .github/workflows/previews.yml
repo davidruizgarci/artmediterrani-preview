@@ -1,0 +1,53 @@
+name: Website review previews
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview-pr-2]
+    paths: ['.github/workflows/previews.yml', 'scripts/build-previews.mjs']
+  schedule:
+    - cron: '7,17,27,37,47,57 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: review-previews
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.build.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build static copies of source branches
+        id: build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORCE_PREVIEW: ${{ github.event_name != 'schedule' }}
+        run: node scripts/build-previews.mjs
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.build.outputs.changed == 'true'
+        with:
+          path: dist
+  deploy:
+    if: needs.build.outputs.changed == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy isolated preview website
+        id: deployment
+        uses: actions/deploy-pages@v4
