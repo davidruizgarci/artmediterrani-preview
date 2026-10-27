@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 // Source is public. No source workflow, package, or script is executed.
 const source = 'artmediterrani/artmediterrani.github.io';
-const base = 'https://davidruizgarci.github.io/artmediterrani-preview-pr-2/';
+const base = 'https://davidruizgarci.github.io/artmediterrani-preview/';
 const headers = { 'User-Agent': 'ArtMediterrani-Review-Previews', Accept: 'application/vnd.github+json' };
 if (process.env.GH_TOKEN) headers.Authorization = `Bearer ${process.env.GH_TOKEN}`;
 const branches = [];
